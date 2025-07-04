@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from flask_cors import CORS
 import requests
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -12,6 +13,7 @@ client = MongoClient('mongodb+srv://gdevrenzz055:upTxRez98KlcixbI@dev.nhma76e.mo
 db = client['shop']
 coll_users = db['users']
 coll_products = db['products']
+coll_carts = db['carts']
 
 #Viewing all products
 @app.route('/api/products/all_products', methods=['GET'])
@@ -69,6 +71,68 @@ def get_user(username):
         user['_id'] = str(user['_id'])
         return jsonify(user), 200
     return jsonify({"error": "User not found"}), 404
+
+
+
+@app.route('/api/users/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    # Query user from database
+    user = coll_users.find_one({'username': username})
+    
+    if not user or user['password'] != password:
+        return jsonify({'error': 'Invalid credentials'}), 401
+
+    return jsonify({'user': {'username': user['username'], 'email': user['email']}}), 200
+
+
+@app.route('/api/products/get/<product_id>', methods=['GET'])
+def get_product_by_id(product_id):
+    try:
+        # Validate and convert product_id to ObjectId
+        product = coll_products.find_one({"_id": ObjectId(product_id)})
+    except (InvalidId, TypeError):
+        return jsonify({"error": "Invalid product ID"}), 400
+
+    if product:
+        product['_id'] = str(product['_id'])  # Convert ObjectId to string
+        return jsonify(product), 200
+
+    return jsonify({"error": "Product not found"}), 404
+
+
+@app.route('/api/carts/add_cart', methods=['POST'])
+def add_cart():
+    data = request.get_json()
+
+    # Check for required field
+    if not data or 'username' not in data:
+        return jsonify({"error": "Missing required field: username"}), 400
+
+    # Check if user exists by username
+    user = coll_users.find_one({"username": data['username']})
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    cart_data = {
+        "username": user['username'],
+        "items": [],
+        "createdAt": datetime.utcnow(),
+        "updatedAt": datetime.utcnow()
+    }
+
+    result = coll_carts.insert_one(cart_data)
+
+    return jsonify({
+        "message": "Cart initialized successfully",
+        "cartId": str(result.inserted_id),
+        "username": user['username'],
+        "items": []
+    }), 201
+
 
 
 if __name__ == '__main__':

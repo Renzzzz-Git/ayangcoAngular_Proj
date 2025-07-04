@@ -4,6 +4,7 @@ client = MongoClient('mongodb+srv://gdevrenzz055:upTxRez98KlcixbI@dev.nhma76e.mo
 db = client['shop']
 collection = db['products']
 users = db['users']
+carts = db['carts']
 
 
 #Adding products
@@ -261,7 +262,7 @@ collection.insert_many([
         "image_url": ""
     }
 ])
-'''
+
 
 #Adding users
 users.insert_many([
@@ -326,4 +327,42 @@ users.insert_many([
         }
     }
 ])
+'''
+
+from random import choice
+from bson import ObjectId
+from datetime import datetime
+
+# Get all users and products
+all_users = list(users.find({}))
+all_products = list(collection.find({}))
+
+# Insert 1 cart per user with 1 random product each
+cart_documents = []
+
+for user in all_users:
+    product = choice(all_products)
+    
+    cart_item = {
+        "productId": product["_id"],
+        "name": product["name"],
+        "category": product["category"],
+        "price": product["price"],
+        "stock": product["stock"],
+        "description": product["description"],
+        "image_url": product["image_url"],
+        "checkState": True
+    }
+
+    cart = {
+        "username": user["username"],
+        "items": [cart_item],
+        "createdAt": datetime.utcnow(),
+        "updatedAt": datetime.utcnow()
+    }
+
+    cart_documents.append(cart)
+
+# Insert carts into the "carts" collection
+carts.insert_many(cart_documents)
 

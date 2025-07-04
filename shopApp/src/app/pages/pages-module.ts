@@ -11,6 +11,8 @@ import { Checkout } from './checkout/checkout';
 import { OrderHistory } from './order-history/order-history';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { LoggedInLanding } from './logged-in-landing/logged-in-landing';
+import { RedirectComponent } from '../redirect/redirect';
 
 
 @NgModule({
@@ -21,13 +23,15 @@ import { FormsModule } from '@angular/forms';
     Order,
     Cart,
     Checkout,
-    OrderHistory
+    OrderHistory,
+    LoggedInLanding
   ],
   imports: [
     CommonModule,
     PagesRoutingModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    RedirectComponent
   ]
 })
 export class PagesModule { }

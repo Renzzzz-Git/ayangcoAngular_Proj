@@ -15,4 +15,11 @@ export class ProductService {
       { params: params }
     );
   }
+
+  get_one(params: any): Observable<any> {
+    return this.http.get(
+      'http://127.0.0.1:5000/api/products/get/',
+      { params: params }
+    );
+  }
 }

@@ -11,48 +11,10 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
-          
-            <!-- Login Modal -->
-            <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="loginModalLabel">User Login</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                
-                <div class="modal-body">
-                    <form>
-                    <div class="mb-3">
-                        <label for="username" class="col-form-label">Username:</label>
-                        <input type="text" class="form-control" id="username" placeholder="Enter your username">
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="col-form-label">Password:</label>
-                        <input type="password" class="form-control" id="password" placeholder="Enter your password">
-                    </div>
-                    </form>
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Login</button>
-                </div>
-                
-                </div>
-            </div>
-            </div>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Sign-up</a>
+          <a class="nav-link" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#signupModal" data-bs-dismiss="modal">Sign up</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Cart</a>
-        </li>
-        <!-- <li class="nav-item">
-          <a class="nav-link disabled" aria-disabled="true">Disabled</a>
-        </li> -->
       </ul>
       <form class="d-flex" role="search">
         <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"  style="width: 20rem;"/>
@@ -61,21 +23,167 @@
     </div>
   </div>
 </nav>
-
+<br>
 <div class="row">
-  <div class="col-md-3 mb-3" *ngFor="let product of products">
+  <div class="col-md-3 mb-3" *ngFor="let product of pagedProducts">
     <div class="card" style="width: 18rem; height: 22rem; margin-left: 2rem;">
-      <img [src]="" class="card-img-top" alt="">
+      <img [src]="product.image || 'https://via.placeholder.com/150'" class="card-img-top" alt="">
       <div class="card-body">
         <h5 class="card-title">{{ product.name }}</h5>
         <p class="card-text">{{ product.description }}</p>
         <p class="card-text"><strong>Price:</strong> ${{ product.price }}</p>
         <p class="card-text"><strong>Available Stock:</strong> {{ product.stock }}</p>
-        <a href="#" class="btn btn-primary" style="margin-top: 4rem;">Buy Now</a>
+        <button class="btn btn-dark" style="margin-top: 4rem;" (click)="promptLoginOrSignup()">Buy Now</button>
       </div>
     </div>
   </div>
 </div>
+
+<nav aria-label="Page navigation" class="mt-3 text-center">
+  <ul class="pagination justify-content-center">
+    <li class="page-item" [class.disabled]="currentPage === 1">
+      <button class="page-link text-black" (click)="changePage(currentPage - 1)">Previous</button>
+    </li>
+
+    <li 
+      class="page-item"
+      *ngFor="let page of totalPagesArray"
+      [ngClass]="{'active': page === currentPage}">
+      <button
+        class="page-link"
+        [ngClass]="{
+          'bg-black text-white border-black': page === currentPage,
+          'text-black': page !== currentPage
+        }"
+        (click)="changePage(page)">
+        {{ page }}
+      </button>
+    </li>
+
+    <li class="page-item" [class.disabled]="currentPage === totalPages">
+      <button class="page-link text-black" (click)="changePage(currentPage + 1)">Next</button>
+    </li>
+  </ul>
+</nav>
+
+
+
+
+
+
+
+<!-- Login Modal -->
+            <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                  <div class="modal-content">
+                  
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="loginModalLabel">User Login</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <form>
+                          <div class="mb-3">
+                              <label for="username" class="col-form-label">Username:</label>
+                              <input type="text" class="form-control" id="username" placeholder="Enter your username" [(ngModel)]="loginUsername" name="loginUsername">
+                          </div>
+                          <div class="mb-3">
+                              <label for="password" class="col-form-label">Password:</label>
+                              <input type="password" class="form-control" id="password" placeholder="Enter your password" [(ngModel)]="loginPassword" name="loginPassword">
+                          </div>
+                        </form>
+                    </div>
+                  
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" (click)="login()" data-bs-dismiss="modal">Login</button>
+                    </div>
+                    <p style="text-align: center;">Don't have an account? <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#signupModal" data-bs-dismiss="modal">Sign up here</a></p>
+                  
+                  </div>
+              </div>
+            </div>
+
+
+           <!-- Sign Up Modal -->
+<div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="signupModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg"> <!-- use modal-lg for better width -->
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="signupModalLabel">User Registration</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form #myForm="ngForm" (ngSubmit)="addUser(myForm)">
+        <div class="modal-body">
+          <div class="row">
+            <!-- Full Name -->
+            <div class="col-md-6 mb-3">
+              <label for="signupName" class="col-form-label">Full Name:</label>
+              <input type="text" class="form-control" id="signupName" placeholder="Enter full name" [(ngModel)]="name" name="name" required>
+            </div>
+
+            <!-- Username -->
+            <div class="col-md-6 mb-3">
+              <label for="signupUsername" class="col-form-label">Username:</label>
+              <input type="text" class="form-control" id="signupUsername" placeholder="Choose a username" [(ngModel)]="username" name="username" required>
+            </div>
+
+            <!-- Password -->
+            <div class="col-md-6 mb-3">
+              <label for="signupPassword" class="col-form-label">Password:</label>
+              <input type="password" class="form-control" id="signupPassword" placeholder="Choose a password" [(ngModel)]="password" name="password" required>
+            </div>
+
+            <!-- Email -->
+            <div class="col-md-6 mb-3">
+              <label for="signupEmail" class="col-form-label">Email:</label>
+              <input type="email" class="form-control" id="signupEmail" placeholder="Enter your email" [(ngModel)]="email" name="email" required>
+            </div>
+
+            <!-- Address: Street -->
+            <div class="col-md-6 mb-3">
+              <label for="signupStreet" class="col-form-label">Street:</label>
+              <input type="text" class="form-control" id="signupStreet" placeholder="123 Main St" [(ngModel)]="street" name="street" required>
+            </div>
+
+            <!-- Address: Suite -->
+            <div class="col-md-6 mb-3">
+              <label for="signupSuite" class="col-form-label">Suite:</label>
+              <input type="text" class="form-control" id="signupSuite" placeholder="Apt, Suite, etc." [(ngModel)]="suite" name="suite" required>
+            </div>
+
+            <!-- Address: City -->
+            <div class="col-md-6 mb-3">
+              <label for="signupCity" class="col-form-label">City:</label>
+              <input type="text" class="form-control" id="signupCity" placeholder="Your City" [(ngModel)]="city" name="city" required>
+            </div>
+
+            <!-- Address: Zipcode -->
+            <div class="col-md-6 mb-3">
+              <label for="signupZipcode" class="col-form-label">Zipcode:</label>
+              <input type="text" class="form-control" id="signupZipcode" placeholder="Postal Code" [(ngModel)]="zipcode" name="zipcode" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" [disabled]="!myForm.valid">Register</button>
+        </div>
+      </form>
+
+      <p style="text-align: center;" class="mb-3">
+        Already have an account?
+        <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Login here</a>
+      </p>
+
+    </div>
+  </div>
+</div>
+
 
 
 
