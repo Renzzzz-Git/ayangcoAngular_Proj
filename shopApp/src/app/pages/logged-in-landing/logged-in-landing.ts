@@ -4,6 +4,8 @@ import { UserService } from '../../services/user';
 import { Observable } from 'rxjs';
 import { response } from 'express';
 import { AuthService } from '../../services/auth';
+import { CartService } from '../../services/carts';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-logged-in-landing',
@@ -17,16 +19,27 @@ export class LoggedInLanding {
   itemsPerPage: number = 8;
   currentPage: number = 1;
   totalPages: number = 1;
+  selectedProduct: any = {};
+  username: string = '';
+
 
 
   constructor(
     private productService: ProductService,
     private userService: UserService,
-    private authService: AuthService){}
+    private authService: AuthService,
+    private cartService: CartService,
+    private router: Router){}
 
 
   ngOnInit(){
     this.getProducts()
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    this.username = user.username || ''
+  }
+
+  checkUser(){
+    console.log(localStorage.getItem('user'))
   }
 
   getProducts() {
@@ -35,9 +48,48 @@ export class LoggedInLanding {
       this.products = response;
       console.log(this.products)
       this.totalPages = Math.ceil(this.products.length / this.itemsPerPage);
+      this.checkUser()
       this.updatePagedProducts();
     }
   });}
+
+  getOne_prod(productId: string) {
+  this.productService.get_one(productId).subscribe({
+    next: (response: any) => {
+      this.selectedProduct = response;  // Or handle however you need
+      console.log("Fetched product:", this.selectedProduct);
+    },
+    error: (err) => {
+      console.error("Error fetching product:", err);
+    }
+  });
+}
+
+  addToCart(item: any) {
+    this.cartService.update(item, this.username).subscribe({
+      next: (response: any) => {
+        alert("Item added to cart successfully!");
+      },
+      error: (err) => {
+        console.error("Error:", err);
+        alert("Item already in cart.");
+      }
+    });
+  }
+
+  buyNow(item: any) {
+    this.cartService.update(item, this.username).subscribe({
+      next: (response: any) => {
+        this.router.navigate(['/cart']);
+      },
+      error: (err) => {
+        console.error("Error:", err);
+        alert("Item already in cart.");
+      }
+    });
+  }
+
+
 
   updatePagedProducts() {
   const startIndex = (this.currentPage - 1) * this.itemsPerPage;

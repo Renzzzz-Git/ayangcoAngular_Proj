@@ -327,7 +327,7 @@ users.insert_many([
         }
     }
 ])
-'''
+
 
 from random import choice
 from bson import ObjectId
@@ -365,4 +365,53 @@ for user in all_users:
 
 # Insert carts into the "carts" collection
 carts.insert_many(cart_documents)
+'''
+
+
+
+
+from random import choice
+from bson import ObjectId
+from datetime import datetime
+
+# Get all users and products
+all_users = list(users.find({}))
+all_products = list(collection.find({}))
+
+for user in all_users:
+    username = user["username"]
+    cart = carts.find_one({"username": username})
+
+    if cart:
+        # Select a random product that is not already in the cart
+        existing_product_ids = [item["productId"] for item in cart.get("items", [])]
+
+        # Filter products to avoid duplicates (optional)
+        available_products = [p for p in all_products if p["_id"] not in existing_product_ids]
+
+        if not available_products:
+            continue  # Skip if all products are already in the cart
+
+        new_product = choice(available_products)
+
+        new_cart_item = {
+            "productId": new_product["_id"],
+            "name": new_product["name"],
+            "category": new_product["category"],
+            "price": new_product["price"],
+            "stock": new_product["stock"],
+            "description": new_product["description"],
+            "image_url": new_product["image_url"],
+            "checkState": True
+        }
+
+        # Append new item and update cart
+        carts.update_one(
+            {"_id": cart["_id"]},
+            {
+                "$push": {"items": new_cart_item},
+                "$set": {"updatedAt": datetime.utcnow()}
+            }
+        )
+
 

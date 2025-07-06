@@ -5,7 +5,9 @@ import { Observable } from 'rxjs';
 import { response } from 'express';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
+import { CartService } from '../../services/carts';
+
+
 
 
 
@@ -55,7 +57,8 @@ export class LandingPage {
   constructor(
     private productService: ProductService,
     private userService: UserService,
-    private router: Router
+    private router: Router,
+    private cartService: CartService
   ){
 
   }
@@ -119,7 +122,7 @@ export class LandingPage {
             alert('Account created!');
           }
           })
-          this.userService.save_cart(this.cart).subscribe({
+          this.cartService.save_cart(this.cart).subscribe({
           next:(response:any) => {
             console.log(this.cart);
           }

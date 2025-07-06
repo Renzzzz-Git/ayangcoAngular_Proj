@@ -5,20 +5,13 @@ import { Observable } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-export class ProductService {
+export class Orders {
 
   constructor(private http: HttpClient) {}
 
   get(params: any): Observable<any> {
     return this.http.get(
-      'http://127.0.0.1:5000/api/products/all_products',
-      { params: params }
-    );
-  }
-
-  get_one(params: any): Observable<any> {
-    return this.http.get(
-      `http://127.0.0.1:5000/api/products/get/${params}`,
+      `http://127.0.0.1:5000/api/orders/all_orders/${params}`,
       { params: params }
     );
   }

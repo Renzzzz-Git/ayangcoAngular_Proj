@@ -19,8 +19,13 @@ export class UserService {
     });
   }
 
-  save_cart(data: any): Observable<any> {
-  return this.http.post<any>('http://127.0.0.1:5000/api/carts/add_cart', data, { headers: { 'Content-Type': 'application/json' } });
-}
+  get_one(params: any): Observable<any> {
+    return this.http.get(
+      `http://127.0.0.1:5000/api/users/get/${params}`,
+      { params: params }
+    );
+  }
+
+  
 
 }

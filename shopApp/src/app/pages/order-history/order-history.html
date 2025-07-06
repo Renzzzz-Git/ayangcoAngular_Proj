@@ -1,1 +1,91 @@
-<p>order-history works!</p>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Karzada</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/cart">My Cart</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/">My Orders</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#" (click)="logout()">Logout</a>
+        </li>
+      </ul>
+      <form class="d-flex" role="search">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"  style="width: 20rem;"/>
+        <button class="btn btn-dark" type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<br>
+
+
+<div class="container mt-4">
+  <div *ngFor="let order of orders; let i = index" class="row mb-5">
+    
+    <!-- Order Number -->
+    <div class="col-12">
+      <h3 class="mb-3">Order #{{ i + 1 }}</h3>
+    </div>
+
+    <!-- Cart Items Column -->
+    <div class="col-md-8">
+      <div class="card mb-3" *ngFor="let item of order.items" style="max-width: 100%;">
+        <div class="row g-0">
+          <div class="col-lg-4">
+            <img [src]="item.image_url || 'https://via.placeholder.com/150'" class="img-fluid rounded-start" />
+          </div>
+          <div class="col-lg-8">
+            <div class="card-body">
+              <h5 class="card-title">{{ item.name }}</h5>
+              <p class="card-text">{{ item.description }}</p>
+              <p class="card-text">
+                <small class="text-body-secondary">
+                  Category: {{ item.category }} | Price: ${{ item.price }}
+                </small>
+                <br />
+                <small class="text-body-secondary">
+                  Quantity: {{ item.quantity }} | Subtotal: ${{ (item.price * item.quantity).toFixed(2) }}
+                </small>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Box Column -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          Order Summary
+        </div>
+        <div class="card-body">
+          <h5 class="card-title">Total Price: ${{ order.totalPrice }}</h5>
+          <address>
+            Address: {{ order.address.zipcode }}, {{ order.address.city }}, {{ order.address.street }}, {{ order.address.suite }}
+          </address>
+          <p class="card-text">
+            <strong>Payment Method:</strong> {{ order.paymentMethod }}
+          </p>
+          <p class="card-text text-muted">
+            Placed on: {{ order.createdAt | date:'medium' }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+

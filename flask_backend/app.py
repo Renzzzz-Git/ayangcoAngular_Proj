@@ -14,6 +14,7 @@ db = client['shop']
 coll_users = db['users']
 coll_products = db['products']
 coll_carts = db['carts']
+coll_orders = db['orders']
 
 #Viewing all products
 @app.route('/api/products/all_products', methods=['GET'])
@@ -132,6 +133,175 @@ def add_cart():
         "username": user['username'],
         "items": []
     }), 201
+
+
+
+def convert_objectid(obj):
+    if isinstance(obj, dict):
+        return {k: convert_objectid(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_objectid(i) for i in obj]
+    elif isinstance(obj, ObjectId):
+        return str(obj)
+    else:
+        return obj
+
+
+@app.route('/api/carts/get/<username>', methods=['GET'])
+def get_cart(username):
+    cart = coll_carts.find_one({"username": username})
+    if cart:
+        cart = convert_objectid(cart)
+        return jsonify(cart), 200
+    return jsonify({"error": "Cart not found"}), 404
+
+
+@app.route('/api/carts/append_item/<username>', methods=['PATCH'])
+def append_item_to_cart(username):
+    new_item = request.get_json()
+
+    if not new_item or '_id' not in new_item:
+        return jsonify({"error": "Invalid item or missing _id"}), 400
+
+    try:
+        item_id = new_item['_id']  
+    except:
+        return jsonify({"error": "Invalid _id format"}), 400
+
+    # Check if item with the same _id already exists in the cart
+    existing_cart = coll_carts.find_one({
+        "username": username,
+        "items._id": item_id
+    })
+
+    if existing_cart:
+        return jsonify({"error": "Item already exists in cart"}), 409
+
+    # Convert _id string to ObjectId before inserting (optional)
+    new_item['_id'] = item_id
+
+    # Append item to the cart
+    result = coll_carts.update_one(
+        {"username": username},
+        {"$push": {"items": new_item}, "$set": {"updatedAt": datetime.utcnow()}}
+    )
+
+    if result.modified_count == 0:
+        return jsonify({"error": "Cart not found or item not appended"}), 404
+
+    return jsonify({"message": "Item added to cart successfully"}), 200
+
+
+
+
+@app.route('/api/carts/remove_item/<username>', methods=['PATCH'])
+def remove_item_from_cart(username):
+    data = request.get_json()
+
+    if not data or '_id' not in data:
+        return jsonify({"error": "_id is required"}), 400
+
+    try:
+        product_id = data['_id'] 
+    except:
+        return jsonify({"error": "Invalid _id"}), 400
+
+    result = coll_carts.update_one(
+        {"username": username},
+        {
+            "$pull": {"items": {"_id": product_id}},  # match ObjectId
+            "$set": {"updatedAt": datetime.utcnow()}
+        }
+    )
+
+    if result.modified_count == 0:
+        return jsonify({"error": "Cart not found or item not removed"}), 404
+
+    return jsonify({"message": "Item removed from cart successfully"}), 200
+
+
+
+@app.route('/api/orders/add_order/<username>', methods=['POST'])
+def add_order(username):
+    # Check if user exists
+    user = coll_users.find_one({"username": username})
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Get order data from request body
+    order_data = request.get_json()
+    items = order_data.get("items", [])
+    payment_method = order_data.get("paymentMethod")
+
+    # Validate and process items
+    processed_items = []
+    total_price = 0  # initialize total
+
+    for item in items:
+        quantity = item.get("quantity", 1)
+        price = item.get("price", 0)
+        subtotal = quantity * price
+        total_price += subtotal
+
+        processed_items.append({
+            "_id": item["_id"],  # Leave _id as string
+            "name": item["name"],
+            "category": item["category"],
+            "price": price,
+            "description": item.get("description", ""),
+            "image_url": item.get("image_url", ""),
+            "quantity": quantity
+        })
+
+    # Extract user address from DB
+    address = user.get("address", {
+        "zipcode": "",
+        "city": "",
+        "street": "",
+        "suite": ""
+    })
+
+    # Build and insert order
+    new_order = {
+        "username": username,
+        "items": processed_items,
+        "address": address,
+        "paymentMethod": payment_method,
+        "totalPrice": round(total_price, 2),
+        "createdAt": datetime.utcnow(),
+        "updatedAt": datetime.utcnow(),
+        "status": "pending"
+    }
+
+    result = coll_orders.insert_one(new_order)
+
+    return jsonify({
+        "message": "Order created successfully",
+        "orderId": str(result.inserted_id),
+        "username": username,
+        "items": new_order["items"],
+        "paymentMethod": new_order["paymentMethod"],
+        "address": new_order["address"],
+        "totalPrice": new_order["totalPrice"]
+    }), 201
+
+
+@app.route('/api/orders/all_orders/<username>', methods=['GET'])
+def all_orders(username):
+    user_orders = coll_orders.find({"username": username})
+    orders = []
+
+    for order in user_orders:
+        order['_id'] = str(order['_id'])  # Convert ObjectId to string
+        order['createdAt'] = order['createdAt'].isoformat() if 'createdAt' in order else None
+        order['updatedAt'] = order['updatedAt'].isoformat() if 'updatedAt' in order else None
+        orders.append(order)
+
+    return jsonify(orders), 200
+
+
+
+
 
 
 
