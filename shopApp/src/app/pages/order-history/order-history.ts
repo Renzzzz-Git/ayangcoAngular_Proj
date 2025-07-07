@@ -31,8 +31,12 @@ export class OrderHistory{
   getOrders() {
     this.orderService.get(this.username).subscribe({
       next: (response: any) => {
-        this.orders = response;
-        this.items = this.orders.flatMap(order => order.items); // ✅ Flatten all items into a single array
+        // Reverse the order to show latest orders first
+        this.orders = response.reverse();
+
+        // Flatten all items into a single array
+        this.items = this.orders.flatMap(order => order.items);
+
         console.log('User Orders:', this.orders);
         console.log('All Ordered Items:', this.items);
       },
@@ -41,6 +45,23 @@ export class OrderHistory{
       }
     });
   }
+
+
+  removeOrder(orderId: any) {
+    if (confirm('Are you sure you want to delete this order?')) {
+      this.orderService.delete(orderId).subscribe({
+        next: (res) => {
+          alert('Order deleted successfully!');
+          this.getOrders(); // Refresh the order list
+        },
+        error: (err) => {
+          console.error('Failed to delete order:', err);
+          alert('Failed to delete order.');
+        }
+      });
+    }
+  }
+
 
   logout(): void {
     this.authService.logout();

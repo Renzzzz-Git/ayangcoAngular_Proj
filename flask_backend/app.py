@@ -300,6 +300,20 @@ def all_orders(username):
     return jsonify(orders), 200
 
 
+@app.route('/api/orders/delete_order/<order_id>', methods=['DELETE'])
+def delete_order(order_id):
+    try:
+        result = coll_orders.delete_one({'_id': ObjectId(order_id)})
+        
+        if result.deleted_count == 1:
+            return jsonify({"message": "Order deleted successfully."}), 200
+        else:
+            return jsonify({"error": "Order not found."}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 
 
 

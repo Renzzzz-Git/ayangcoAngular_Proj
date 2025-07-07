@@ -69,17 +69,29 @@ export class Checkout {
 
 
   add_order() {
+    // Check if items array is empty
+    if (!this.items || this.items.length === 0) {
+      alert("Your cart is empty. Please add items before placing an order.");
+      return;
+    }
+
+    // Check if a payment method is selected
+    if (!this.paymentMethod || this.paymentMethod.trim() === '') {
+      alert("Please select a payment method before placing the order.");
+      return;
+    }
+
     const order_data = {
-      items: this.items,                 // includes _id, name, price, quantity, etc.          
+      items: this.items,                 // includes _id, name, price, quantity, etc.
       paymentMethod: this.paymentMethod, // selected via dropdown
-      totalPrice: this.totalPrice       // calculated in calcPrice()
+      totalPrice: this.totalPrice        // calculated in calcPrice()
     };
 
     this.checkoutService.save(order_data, this.username).subscribe({
       next: (response: any) => {
         console.log(this.username);
         alert('Order Added!');
-        this.router.navigate(['/cart']);
+        this.router.navigate(['/order-history']);
       },
       error: (err) => {
         console.error("Failed to add order:", err);
@@ -87,6 +99,8 @@ export class Checkout {
       }
     });
   }
+
+
 
 
 

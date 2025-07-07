@@ -8,7 +8,7 @@ export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
 
-  // ✅ Only run localStorage check in browser
+  // Only run localStorage check in browser
   if (isPlatformBrowser(platformId) && auth.isAuthenticated()) {
     return true;
   }

@@ -37,6 +37,7 @@
     <!-- Order Number -->
     <div class="col-12">
       <h3 class="mb-3">Order #{{ i + 1 }}</h3>
+      <p class="mb-3">Order ID: {{ order._id }}</p>
     </div>
 
     <!-- Cart Items Column -->
@@ -81,6 +82,9 @@
           </p>
           <p class="card-text text-muted">
             Placed on: {{ order.createdAt | date:'medium' }}
+          </p>
+          <p class="card-text">
+            <a href="/order-history" (click)="removeOrder(order._id)"><button class="btn btn-danger">Cancel Order</button></a>
           </p>
         </div>
       </div>
